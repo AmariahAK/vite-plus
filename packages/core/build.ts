@@ -423,6 +423,41 @@ async function bundleTsdown() {
 
   const thirdPartyCjsModules = new Set<string>();
 
+  // Patch shims+unbundle ESM banner leak into CJS output.
+  // Upstream fix: rolldown/tsdown#991 (merged, not yet in a published release).
+  // The shimsPlugin banner is pure ESM syntax; when unbundle is on it was
+  // pushed regardless of format, leaking `import ...` into .cjs files.
+  // Add the same format guard that getShimsInject already uses.
+  // Re-evaluate after tsdown >=0.22.5.
+  {
+    const buildChunkFiles = await glob(
+      toPosixPath(join(tsdownSourceDir, 'dist', 'build-*.mjs')),
+      { absolute: true },
+    );
+    for (const file of buildChunkFiles) {
+      let source = await readFile(file, 'utf-8');
+      if (source.includes('if (shims && !cjsDts) if (unbundle) {')) {
+        const NL = String.fromCharCode(10);
+        const TAB = String.fromCharCode(9);
+        source = source.replace(
+          'if (shims && !cjsDts) if (unbundle) {',
+          'if (shims && !cjsDts) if (unbundle) {' +
+            NL +
+            TAB +
+            TAB +
+            "if (format === 'es' && platform === 'node') {",
+        );
+        source = source.replace(
+          TAB + '} else inject = getShimsInject(format, platform)',
+          TAB + '}' + NL + TAB + '} else inject = getShimsInject(format, platform)',
+        );
+        await writeFile(file, source, 'utf-8');
+        console.log(`Patched shims+unbundle CJS leak in ${file}`);
+        break;
+      }
+    }
+  }
+
   // Re-build tsdown cli plus the bundled `@tsdown/exe` and `@tsdown/css`
   // extensions as stable named entries (`tsdown-exe.js`, `tsdown-css.js`).
   await build({

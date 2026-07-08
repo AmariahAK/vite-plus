@@ -23,8 +23,8 @@ catalog:
   '@rollup/plugin-commonjs': ^29.0.0
   '@rollup/plugin-json': ^6.1.0
   '@rollup/plugin-node-resolve': ^16.0.0
-  '@tsdown/css': ^0.22.3
-  '@tsdown/exe': ^0.22.3
+  '@tsdown/css': ^0.22.4
+  '@tsdown/exe': ^0.22.4
   '@types/babel__core': 7.20.5
   '@types/connect': ^3.4.38
   '@types/cross-spawn': ^6.0.6
@@ -118,7 +118,7 @@ catalog:
   terser: ^5.44.1
   tinybench: ^6.0.0
   tinyexec: ^1.0.1
-  tsdown: ^0.22.3
+  tsdown: ^0.22.4
   tsx: ^4.22.0
   typescript: ^6.0.0
   unified: ^11.0.5
